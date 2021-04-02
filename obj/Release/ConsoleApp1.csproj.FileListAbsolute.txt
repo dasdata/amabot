@@ -1,0 +1,10 @@
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\bin\Release\ConsoleApp1.exe.config
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\bin\Release\ConsoleApp1.exe
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\bin\Release\ConsoleApp1.pdb
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\bin\Release\Microsoft.CognitiveServices.Speech.csharp.dll
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\bin\Release\Microsoft.CognitiveServices.Speech.csharp.xml
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\obj\Release\ConsoleApp1.csprojAssemblyReference.cache
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\obj\Release\ConsoleApp1.csproj.CoreCompileInputs.cache
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\obj\Release\ConsoleApp1.csproj.CopyComplete
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\obj\Release\ConsoleApp1.exe
+C:\Users\Otilia\source\repos\ConsoleApp1\ConsoleApp1\obj\Release\ConsoleApp1.pdb
