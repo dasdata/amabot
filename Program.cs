@@ -16,11 +16,12 @@ using System.Net.Http;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 namespace ConsoleApp1
 {
     class Program
-    { 
+    {
         // Azure Speech 2 Text 
         static string _stKey = "xxxxxxxxxxxxxxxxxxxxx";  //https://azure.microsoft.com/en-us/services/cognitive-services/speech-to-text/
         static string _stRegion = "eastus";
@@ -32,15 +33,26 @@ namespace ConsoleApp1
         // Open AI 
         static string _oiKey = "xxxxxxxxxxxxxxxxxxxxx"; // https://beta.openai.com/examples
         static string _oiPrompt = "";
-       
         static string _userMails = "";
         static string strKeyPhrases = "";
         static string _overallSentiment = "";
+        static string _prepEmail = "";
         static async Task Main()
         {
-            // start here
-            await getEmailFilesAsync();  
-            //  await ConversationStart(); 
+            // start here 
+            // Console.WriteLine("\tHello! Say Check or Mail, Note"); 
+            // await ConversationStart();  
+            // var speechConfig = SpeechConfig.FromSubscription(_stKey, _stRegion);
+            // string myRequest = await FromMic(speechConfig);
+
+            var currentProc = System.Diagnostics.Process.GetCurrentProcess();
+            string process_name = currentProc.ProcessName;
+            // don't speak while MS Teams or Skyle call 
+            if (process_name != "Teams"  || process_name != "Skype")
+            {
+                 await getEmailFilesAsync(); 
+            }  
+             
             Console.ReadLine();
         }
 
@@ -125,29 +137,15 @@ namespace ConsoleApp1
             txtContext += "Seed words:" + strKeyPhrases;
             txtContext += "Reply Email:";
             var email_result = await api.Completions.CreateCompletionAsync(txtContext, temperature: 0.8, max_tokens: 40, top_p: 1, frequencyPenalty: 0, presencePenalty: 0, stopSequences: "Human, AI");
-            string prepGeneratedEmail = "Here is my reply: " + email_result + ". Shall we send it?";
+            _prepEmail = email_result.ToString();
+            string prepGeneratedEmail = "Here is my reply: \n" + email_result + ". \nSay Send, Next or Mail to Open Outlook!";
 
             Console.WriteLine($"\n\t{prepGeneratedEmail}");
             await SynthesisToSpeakerAsync(prepGeneratedEmail);
 
             var speechConfig = SpeechConfig.FromSubscription(_stKey, _stRegion);
-            string myRequest = await FromMic(speechConfig);
-
-            var client = new TextAnalyticsClient(endpoint, credentials);
-            // LanguageDetection(client, _userMails);
-            DocumentSentiment documentSentiment = client.AnalyzeSentiment(myRequest);
-           // Console.WriteLine($"\tConfirmed sentiment: {documentSentiment.Sentiment}\n");
-
-            string replySentiment = documentSentiment.Sentiment.ToString(); 
-             if (documentSentiment.Sentiment != TextSentiment.Positive)
-               {
-                 await SynthesisToSpeakerAsync("Ok. Done, it's sent!");
-               }
-
-               else {
-                await SynthesisToSpeakerAsync(" Ok fine... ");
-                } 
-            }
+            string myRequest = await FromMic(speechConfig);  
+        }
          
         // you can also have conversational ai with the model 
         async static Task ConversationStart()
@@ -194,7 +192,59 @@ namespace ConsoleApp1
             var result = await recognizer.RecognizeOnceAsync();
             string strResult = result.Text;
             Console.WriteLine($"\n\tHUMAN: {strResult}");
+
+            // voice commands 
+            switch (strResult)
+            {
+                 
+              case var em when strResult.Contains("Send"):
+                    ExeCmd("cmd.exe", "mailto:alias@domain?subject=test&" + _prepEmail );
+                    await SynthesisToSpeakerAsync("Ok. Preparing to send!");
+                    Console.WriteLine("oops! worked...");
+                    break; 
+                case var em when strResult.Contains("Mail"):
+                    await SynthesisToSpeakerAsync("Open Mail");
+                    ExeCmd("outlook.exe", "ipm.note"); 
+                    Console.WriteLine("Open mail!");
+                    break;
+                case var em when strResult.Contains("Check"):
+                    await SynthesisToSpeakerAsync("Check Mail");
+                    await getEmailFilesAsync();
+                    Console.WriteLine("Check mail!");
+                    break; 
+                case var ap when strResult.Contains("Note"):
+                    await SynthesisToSpeakerAsync("Open Notes");
+                    ExeCmd("outlook.exe", "ipm.stickynote");
+                    Console.WriteLine("Open notes!");
+                    break;
+                case var s when strResult.Contains("Task"):
+                    await SynthesisToSpeakerAsync("Open Task");
+                    ExeCmd("outlook.exe", "ipm.task");
+                    Console.WriteLine("Open task!");
+                    break;
+                case var s when strResult.Contains("Next"):
+                    await SynthesisToSpeakerAsync("Next Mail");
+                    Console.WriteLine("Next mail..");
+                    break;
+                default:
+                    Console.WriteLine("Nothing yet..");
+                    break;
+            } 
+
             return strResult; 
         }
+
+        // execute some commands for Outlook 
+        static public void ExeCmd(String program,  String command)
+        {
+            Process p = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.FileName = program;
+            startInfo.Arguments = @"/c " + command; // cmd.exe spesific implementation
+            p.StartInfo = startInfo;
+            p.Start();
+        }
+
+
     }
 }
